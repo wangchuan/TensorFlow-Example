@@ -9,9 +9,13 @@ import do_validate
 
 # parameters for app:
 FLAGS = tf.flags.FLAGS
-tf.flags.DEFINE_integer("batch_size", "100", "batch size for training")
-tf.flags.DEFINE_integer("epoches", "20", "number of epoches")
+tf.flags.DEFINE_integer("batch_size", 100, "batch size for training")
+tf.flags.DEFINE_integer("epoches", 20, "number of epoches")
+tf.flags.DEFINE_integer("disp", 100, "how many iterations to display")
+tf.flags.DEFINE_float("weight_decay", 0.001, "weight decay")
+tf.flags.DEFINE_float("learning_rate", 0.05, "learning rate")
 tf.flags.DEFINE_string("data_path", "./data/", "data path storing npy files")
+tf.flags.DEFINE_string("log_path", "./log/", "log path storing checkpoints")
 tf.flags.DEFINE_string("mode", "train", "train or test")
 
 def main():
@@ -27,15 +31,19 @@ def main():
         sess.run(init_op)
 
         saver = tf.train.Saver()
-        ckpt = tf.train.get_checkpoint_state('./log/')
-        if ckpt and ckpt.model_checkpoint_path:
-            saver.restore(sess, ckpt.model_checkpoint_path)
-            print("Model restored...")
 
         if FLAGS.mode == 'train':
             do_train.run(FLAGS, sess, net, saver, train_data_reader, test_data_reader)
         else:
-            do_validate.run(sess, net, test_data_reader)
+            ckpt = tf.train.get_checkpoint_state(FLAGS.log_path)
+            if ckpt and ckpt.model_checkpoint_path:
+                saver.restore(sess, ckpt.model_checkpoint_path)
+                print("Model restored...")
+            if FLAGS.mode == 'test':
+                do_validate.run(sess, net, test_data_reader)
+            else:
+                do_train.run(FLAGS, sess, net, saver, train_data_reader, test_data_reader)
+
 
 if __name__ == '__main__':
     main()

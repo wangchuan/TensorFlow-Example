@@ -24,3 +24,8 @@ def bias_variable(shape, name=None):
 def conv2d(x, W, b, stride=[1,1,1,1]):
     conv = tf.nn.conv2d(x, W, stride, padding='SAME')
     return tf.nn.bias_add(conv, b)
+
+def add_to_regularization(var):
+    if var is not None:
+        tf.add_to_collection("reg_loss", tf.nn.l2_loss(var))
+

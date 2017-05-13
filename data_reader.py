@@ -11,7 +11,6 @@ class DataReader:
     start_index = 0
     _epoch = 0
     _iteration = 0
-    _one_epoch_completed = False
 
     def __init__(self, FLAGS, dtype):
         self.data_path = FLAGS.data_path
@@ -33,6 +32,8 @@ class DataReader:
         else:
             self.data = np.load(data_filename)
             self.label = np.load(label_filename)
+        if self.label.shape[0] < self.batch_size:
+            raise NameError('batch size too large!')
 
     def next_batch(self):
         s = self.start_index
@@ -54,11 +55,6 @@ class DataReader:
     def reset(self):
         self._epoch = 0
         self._iteration = 0
-        self._one_epoch_completed = False
-
-    @property
-    def one_epoch_completed(self):
-        return self._one_epoch_completed
 
     @property
     def epoch(self):

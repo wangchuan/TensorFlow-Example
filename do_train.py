@@ -3,6 +3,7 @@ from __future__ import print_function
 import tensorflow as tf
 import numpy as np
 import do_validate
+import os
 import pdb
 
 def run(FLAGS, sess, net, saver, data_train, data_test):
@@ -13,11 +14,11 @@ def run(FLAGS, sess, net, saver, data_train, data_test):
     tf.summary.scalar('acc', acc)
 
     summary_op = tf.summary.merge_all()
-    summary_writer = tf.summary.FileWriter('./log/', sess.graph)
+    summary_writer = tf.summary.FileWriter(FLAGS.log_path, sess.graph)
 
     ph_image, ph_label = net.placeholders()
 
-    optimizer = tf.train.GradientDescentOptimizer(0.05)
+    optimizer = tf.train.GradientDescentOptimizer(FLAGS.learning_rate)
     train_op = optimizer.minimize(loss)
 
     prev_epoch = data_train.epoch
@@ -30,12 +31,13 @@ def run(FLAGS, sess, net, saver, data_train, data_test):
             ph_label: label
         }
         _, acc_val, summary_str = sess.run([train_op, acc, summary_op], feed_dict=feed_dict)
-        if data_train.iteration % 100 == 0:
+        if data_train.iteration % FLAGS.disp == 0:
             print("Train: %3.3f" % acc_val)
             summary_writer.add_summary(summary_str, data_train.iteration)
         if (prev_epoch != data_train.epoch):
             print('Epoch[%03d]:' % data_train.epoch, end=' ')
             do_validate.run(sess, net, data_test)
-            saver.save(sess, "./log/model.ckpt", data_train.iteration)
+            saver.save(sess, os.path.join(FLAGS.log_path, 'model.ckpt'), data_train.iteration)
         prev_epoch = data_train.epoch
+    saver.save(sess, os.path.join(FLAGS.log_path, 'model.ckpt'), data_train.iteration)
     sess.close()
