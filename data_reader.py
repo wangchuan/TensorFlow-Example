@@ -10,6 +10,7 @@ class DataReader:
     batch_size = 16
     start_index = 0
     _epoch = 0
+    _iteration = 0
     _one_epoch_completed = False
 
     def __init__(self, FLAGS, dtype):
@@ -40,6 +41,8 @@ class DataReader:
         batch = self.data[s:e]
         label = self.label[s:e]
 
+        self._iteration += 1
+
         if e == len(self.label):
             self.start_index = 0
             self._epoch += 1
@@ -50,6 +53,7 @@ class DataReader:
 
     def reset(self):
         self._epoch = 0
+        self._iteration = 0
         self._one_epoch_completed = False
 
     @property
@@ -60,3 +64,6 @@ class DataReader:
     def epoch(self):
         return self._epoch
 
+    @property
+    def iteration(self):
+        return self._iteration

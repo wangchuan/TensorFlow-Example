@@ -5,12 +5,17 @@ class Net:
     batch_size = 16
     ph_image = None
     ph_label = None
-    layers = None
+    logits = None
+    loss = None
+    acc = None
 
     def __init__(self, FLAGS):
         self.batch_size = FLAGS.batch_size
         self.ph_image = tf.placeholder(tf.float32, shape=(self.batch_size, 32, 32, 3), name='image')
         self.ph_label = tf.placeholder(tf.int32, shape=(self.batch_size), name='label')
+        self.logits = self.inference(False)
+        self.loss = self.compute_loss()
+        self.acc = self.compute_acc()
 
     def placeholders(self):
         return self.ph_image, self.ph_label
@@ -49,15 +54,15 @@ class Net:
                 fc2 = tf.matmul(fc1, weights) + biases
         return fc2
 
-    def loss(self):
+    def compute_loss(self):
         label = tf.cast(self.ph_label, tf.int32)
-        logits = self.inference(False)
+        logits = self.logits
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=label, name='xentropy')
         cross_entropy_mean = tf.reduce_mean(cross_entropy, name='xentropy_mean')
         return cross_entropy_mean
 
-    def acc(self):
+    def compute_acc(self):
         label = tf.cast(self.ph_label, tf.int64)
-        logits = self.inference(True)
+        logits = self.logits
         acc_mean = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits, 1), label), tf.float32))
         return acc_mean

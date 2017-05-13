@@ -1,7 +1,9 @@
 import tensorflow as tf
 import numpy as np
 
-def run(sess, acc, data_test, ph_image, ph_label):
+def run(sess, net, data_test):
+    ph_image, ph_label = net.placeholders()
+    acc = net.acc
     acc_total = 0.0
     n = 0
     data_test.reset()
